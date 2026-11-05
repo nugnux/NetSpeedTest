@@ -142,4 +142,387 @@
             <!-- Needle -->
             <g id="needle" class="gauge-needle" style="transform: rotate(-120deg);">
               <line x1="100" y1="100" x2="35" y2="100" stroke="#f3f4f6" stroke-width="3" stroke-linecap="round" />
-              <circle cx="100" cy="100" r="6" fill="#63
+              <circle cx="100" cy="100" r="6" fill="#6366f1" stroke="#ffffff" stroke-width="2" />
+            </g>
+          </svg>
+
+          <!-- Speed Numbers Overlay -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none">
+            <span id="speed-value" class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">0.00</span>
+            <span id="speed-unit" class="text-sm font-medium text-gray-400 mt-1">Mbps</span>
+            <span id="test-phase" class="text-xs font-semibold text-cyan-400 uppercase tracking-widest mt-2">Ready</span>
+          </div>
+        </div>
+
+        <!-- Real-time Stats Strip -->
+        <div class="grid grid-cols-4 gap-2 sm:gap-4 bg-gray-900/60 p-4 rounded-xl border border-gray-800 text-center">
+          <div>
+            <span class="text-xs text-gray-400 uppercase font-medium">Ping</span>
+            <div class="text-lg font-bold text-cyan-400" id="stat-ping">-- <span class="text-xs font-normal">ms</span></div>
+          </div>
+          <div>
+            <span class="text-xs text-gray-400 uppercase font-medium">Jitter</span>
+            <div class="text-lg font-bold text-indigo-400" id="stat-jitter">-- <span class="text-xs font-normal">ms</span></div>
+          </div>
+          <div>
+            <span class="text-xs text-gray-400 uppercase font-medium">Download</span>
+            <div class="text-lg font-bold text-emerald-400" id="stat-download">-- <span class="text-xs font-normal">Mbps</span></div>
+          </div>
+          <div>
+            <span class="text-xs text-gray-400 uppercase font-medium">Upload</span>
+            <div class="text-lg font-bold text-pink-400" id="stat-upload">-- <span class="text-xs font-normal">Mbps</span></div>
+          </div>
+        </div>
+
+        <!-- Start Test Button -->
+        <button id="start-btn" onclick="startSpeedTest()" class="mt-6 w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-indigo-600 to-pink-500 hover:opacity-90 transition active:scale-[0.99] shadow-lg flex items-center justify-center gap-2">
+          <i class="fa-solid fa-play"></i> Start Speed Test
+        </button>
+
+      </div>
+
+      <!-- Network Info & Live Stability -->
+      <div class="space-y-6">
+        
+        <!-- Connection Info Card -->
+        <div class="bg-cyber-card border border-gray-800 rounded-2xl p-5 space-y-4">
+          <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-cyan-400"></i> Network Info
+          </h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between pb-2 border-b border-gray-800">
+              <span class="text-gray-400">Public IP</span>
+              <span id="info-ip" class="font-mono text-gray-200">Fetching...</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-800">
+              <span class="text-gray-400">ISP / Provider</span>
+              <span id="info-isp" class="font-mono text-gray-200">Fetching...</span>
+            </div>
+            <div class="flex justify-between pb-2 border-b border-gray-800">
+              <span class="text-gray-400">Location</span>
+              <span id="info-location" class="font-mono text-gray-200">Fetching...</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">Effective Type</span>
+              <span id="info-connection" class="font-mono text-emerald-400">4G/WiFi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Continuous Ping Monitor Chart -->
+        <div class="bg-cyber-card border border-gray-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-indigo-400"></i> Live Latency (Heartbeat)
+            </h3>
+            <span class="text-xs font-mono text-gray-400" id="heartbeat-value">-- ms</span>
+          </div>
+          <div class="h-40 relative">
+            <canvas id="pingChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Row: Recent Test History -->
+    <div class="bg-cyber-card border border-gray-800 rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-200">Local Test History</h2>
+          <p class="text-xs text-gray-400">Stored directly inside browser localStorage</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportHistory()" class="px-3 py-1.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-gray-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-download"></i> Export JSON
+          </button>
+          <button onclick="clearHistory()" class="px-3 py-1.5 text-xs font-medium bg-red-950/50 hover:bg-red-900/50 border border-red-800/50 rounded-lg text-red-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-400">
+          <thead class="bg-gray-900/80 text-xs uppercase font-semibold text-gray-400 border-b border-gray-800">
+            <tr>
+              <th class="py-3 px-4">Timestamp</th>
+              <th class="py-3 px-4">Ping</th>
+              <th class="py-3 px-4">Jitter</th>
+              <th class="py-3 px-4">Download</th>
+              <th class="py-3 px-4">Upload</th>
+              <th class="py-3 px-4">Rating</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body" class="divide-y divide-gray-800">
+            <tr>
+              <td colspan="6" class="py-6 text-center text-gray-500 italic">No speed tests run yet. Click "Start Speed Test" to begin!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-800 bg-gray-900/30 py-4 text-center text-xs text-gray-500">
+    NetPulse Client-Side Dashboard &bull; Ready for GitHub Pages Static Hosting
+  </footer>
+
+  <!-- Main Application Script -->
+  <script>
+    // Configuration & Targets (Using fast CORS-friendly public CDNs)
+    const DOWNLOAD_TARGET = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; // ~600KB file
+    const UPLOAD_TARGET = 'https://httpbin.org/post';
+    const PING_TARGET = 'https://1.1.1.1/cdn-cgi/trace';
+
+    let isTesting = false;
+    let pingChartInstance = null;
+    let pingHistoryData = [];
+
+    // --- 1. Initializers ---
+    window.onload = () => {
+      initPingChart();
+      fetchNetworkInfo();
+      loadTestHistory();
+      startContinuousPing();
+    };
+
+    // --- 2. Gauge Control ---
+    function updateGauge(speed) {
+      // Scale speed (0 to 100 Mbps max mapped to needle rotation -120deg to 120deg)
+      const maxSpeed = 100;
+      const normalizedSpeed = Math.min(Math.max(speed, 0), maxSpeed);
+      const angle = -120 + (normalizedSpeed / maxSpeed) * 240;
+      
+      document.getElementById('needle').style.transform = `rotate(${angle}deg)`;  // Dashoffset calculation for SVG arc progress const maxOffset = 377; const progressOffset = maxOffset - (normalizedSpeed / maxSpeed) * (maxOffset * 0.66); document.getElementById('gauge-progress').style.strokeDashoffset = progressOffset; }  // --- 3. Live Heartbeat Chart (Chart.js) --- function initPingChart() { const ctx = document.getElementById('pingChart').getContext('2d'); pingChartInstance = new Chart(ctx, { type: 'line', data: { labels: Array(20).fill(''), datasets: [{ label: 'Latency (ms)', data: Array(20).fill(null), borderColor: '#6366f1', borderWidth: 2, backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', font: { size: 10 } } } } } }); }  function startContinuousPing() { setInterval(async () => { if (isTesting) return; // Skip during active speed tests  const start = performance.now(); try { await fetch(PING_TARGET, { mode: 'no-cors', cache: 'no-store' }); const latency = Math.round(performance.now() - start);  document.getElementById('heartbeat-value').innerText = `${latency} ms`;
+          
+          // Update Chart
+          pingHistoryData.push(latency);
+          if (pingHistoryData.length > 20) pingHistoryData.shift();
+
+          pingChartInstance.data.datasets[0].data = [...pingHistoryData];
+          pingChartInstance.update('none');
+        } catch (err) {
+          document.getElementById('heartbeat-value').innerText = 'Offline';
+        }
+      }, 2500);
+    }
+
+    // --- 4. Fetch Network Metadata ---
+    async function fetchNetworkInfo() {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        
+        document.getElementById('info-ip').innerText = data.ip || 'Unknown';
+        document.getElementById('info-isp').innerText = data.org || 'Unknown';
+        document.getElementById('info-location').innerText = `${data.city},${data.country_code}` || 'Unknown';
+      } catch (e) {
+        document.getElementById('info-ip').innerText = 'Protected / Unavailable';
+        document.getElementById('info-isp').innerText = 'Unknown';
+        document.getElementById('info-location').innerText = 'Unknown';
+      }
+
+      if (navigator.connection) {
+        document.getElementById('info-connection').innerText = navigator.connection.effectiveType.toUpperCase();
+      }
+    }
+
+    // --- 5. Main Speed Test Controller ---
+    async function startSpeedTest() {
+      if (isTesting) return;
+      isTesting = true;
+
+      const btn = document.getElementById('start-btn');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Testing in Progress...`;
+
+      document.getElementById('grade-badge').classList.add('hidden');
+      resetStatsUI();
+
+      try {
+        // Step 1: Ping & Jitter Test
+        setPhase('Testing Ping...');
+        const { ping, jitter } = await measurePingAndJitter();
+        document.getElementById('stat-ping').innerHTML = `${ping} <span class="text-xs font-normal">ms</span>`;
+        document.getElementById('stat-jitter').innerHTML = `${jitter} <span class="text-xs font-normal">ms</span>`;
+
+        // Step 2: Download Speed Test
+        setPhase('Testing Download...');
+        const downloadSpeed = await measureDownloadSpeed();
+        document.getElementById('stat-download').innerHTML = `${downloadSpeed.toFixed(2)} <span class="text-xs font-normal">Mbps</span>`;
+
+        // Step 3: Upload Speed Test
+        setPhase('Testing Upload...');
+        const uploadSpeed = await measureUploadSpeed();
+        document.getElementById('stat-upload').innerHTML = `${uploadSpeed.toFixed(2)} <span class="text-xs font-normal">Mbps</span>`;
+
+        // Step 4: Finalize & Grade
+        setPhase('Complete');
+        const grade = calculateGrade(ping, downloadSpeed);
+        displayGrade(grade);
+        
+        // Save to LocalStorage History
+        saveTestResult({
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          ping: `${ping} ms`, jitter: `${jitter} ms`,
+          download: `${downloadSpeed.toFixed(2)} Mbps`, upload: `${uploadSpeed.toFixed(2)} Mbps`,
+          grade: grade.letter
+        });
+
+      } catch (err) {
+        console.error(err);
+        setPhase('Test Failed');
+      } finally {
+        isTesting = false;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> Start Speed Test`;
+        updateGauge(0);
+      }
+    }
+
+    // --- Helper Functions for Diagnostics ---
+    function setPhase(text) {
+      document.getElementById('test-phase').innerText = text;
+    }
+
+    function resetStatsUI() {
+      document.getElementById('stat-ping').innerHTML = `-- <span class="text-xs font-normal">ms</span>`;
+      document.getElementById('stat-jitter').innerHTML = `-- <span class="text-xs font-normal">ms</span>`;
+      document.getElementById('stat-download').innerHTML = `-- <span class="text-xs font-normal">Mbps</span>`;
+      document.getElementById('stat-upload').innerHTML = `-- <span class="text-xs font-normal">Mbps</span>`;
+      document.getElementById('speed-value').innerText = '0.00';
+    }
+
+    async function measurePingAndJitter() {
+      const pings = [];
+      for (let i = 0; i < 5; i++) {
+        const start = performance.now();
+        await fetch(PING_TARGET + '?t=' + Math.random(), { mode: 'no-cors', cache: 'no-store' });
+        pings.push(performance.now() - start);
+        await new Promise(r => setTimeout(r, 100));
+      }
+      
+      const avgPing = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
+      const jitter = Math.round(Math.max(...pings) - Math.min(...pings));
+      
+      return { ping: avgPing, jitter };
+    }
+
+    async function measureDownloadSpeed() {
+      const startTime = performance.now();
+      let loadedBytes = 0;
+      
+      // Fetch multiple times to simulate sustained transfer
+      for (let i = 0; i < 3; i++) {
+        const response = await fetch(DOWNLOAD_TARGET + '?cachebust=' + Math.random(), { cache: 'no-store' });
+        const reader = response.body.getReader();
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          loadedBytes += value.length;
+          
+          const durationSeconds = (performance.now() - startTime) / 1000;
+          const currentMbps = ((loadedBytes * 8) / (1024 * 1024)) / durationSeconds;
+          
+          document.getElementById('speed-value').innerText = currentMbps.toFixed(2);
+          updateGauge(currentMbps);
+        }
+      }
+
+      const totalDuration = (performance.now() - startTime) / 1000;
+      return ((loadedBytes * 8) / (1024 * 1024)) / totalDuration;
+    }
+
+    async function measureUploadSpeed() {
+      // 2MB payload dummy buffer
+      const payload = new Uint8Array(2 * 1024 * 1024);
+      const startTime = performance.now();
+
+      try {
+        await fetch(UPLOAD_TARGET, {
+          method: 'POST',
+          body: payload,
+          mode: 'cors'
+        });
+      } catch (e) {
+        // Fallback calculation for CORS fallback if upload fails
+      }
+
+      const durationSeconds = (performance.now() - startTime) / 1000;
+      const uploadMbps = ((payload.length * 8) / (1024 * 1024)) / durationSeconds;
+
+      document.getElementById('speed-value').innerText = uploadMbps.toFixed(2);
+      updateGauge(uploadMbps);
+      return uploadMbps;
+    }
+
+    function calculateGrade(ping, download) {
+      if (ping < 30 && download > 50) return { letter: 'A+', color: 'bg-emerald-950 text-emerald-400 border-emerald-700' };
+      if (ping < 50 && download > 25) return { letter: 'A', color: 'bg-emerald-950 text-emerald-400 border-emerald-700' };
+      if (ping < 100 && download > 10) return { letter: 'B', color: 'bg-blue-950 text-blue-400 border-blue-700' };
+      if (ping < 150 && download > 5) return { letter: 'C', color: 'bg-yellow-950 text-yellow-400 border-yellow-700' };
+      return { letter: 'D', color: 'bg-red-950 text-red-400 border-red-700' };
+    }
+
+    function displayGrade(grade) {
+      const badge = document.getElementById('grade-badge');
+      badge.className = `px-3 py-1 rounded-full text-sm font-bold border ${grade.color}`;
+      badge.innerText = `Network Grade: ${grade.letter}`;
+      badge.classList.remove('hidden');
+    }
+
+    // --- 6. History Management (localStorage) ---
+    function saveTestResult(result) {
+      const history = JSON.parse(localStorage.getItem('netpulse_history') || '[]');
+      history.unshift(result);
+      if (history.length > 10) history.pop(); // Keep last 10 entries
+      
+      localStorage.setItem('netpulse_history', JSON.stringify(history));
+      loadTestHistory();
+    }
+
+    function loadTestHistory() {
+      const history = JSON.parse(localStorage.getItem('netpulse_history') || '[]');
+      const tbody = document.getElementById('history-table-body');
+      
+      if (history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500 italic">No speed tests run yet. Click "Start Speed Test" to begin!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = history.map(row => `
+        <tr class="hover:bg-gray-800/40 transition">
+          <td class="py-3 px-4 font-mono text-gray-300">${row.timestamp}</td>
+          <td class="py-3 px-4 text-cyan-400 font-medium">${row.ping}</td>
+          <td class="py-3 px-4 text-indigo-400 font-medium">${row.jitter}</td>
+          <td class="py-3 px-4 text-emerald-400 font-medium">${row.download}</td>
+          <td class="py-3 px-4 text-pink-400 font-medium">${row.upload}</td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold border border-gray-700 bg-gray-800 text-white">${row.grade}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function clearHistory() {
+      localStorage.removeItem('netpulse_history');
+      loadTestHistory();
+    }
+
+    function exportHistory() {
+      const history = localStorage.getItem('netpulse_history') || '[]';
+      const blob = new Blob([history], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `netpulse-history-${Date.now()}.json`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
